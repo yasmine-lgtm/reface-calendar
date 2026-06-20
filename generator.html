@@ -35,12 +35,10 @@
 <div class="wrap">
   <h1>Reface reminders</h1>
   <p class="sub">Fill in the appointment — copy the WhatsApp message.</p>
-
   <div class="field">
     <label for="cname">Client name</label>
     <input type="text" id="cname" placeholder="e.g. Lara" oninput="generate()" />
   </div>
-
   <div class="row">
     <div class="field" style="margin-bottom:0">
       <label for="adate">Date</label>
@@ -51,7 +49,6 @@
       <input type="time" id="atime" oninput="generate()" />
     </div>
   </div>
-
   <div class="field" style="margin-top:1rem">
     <label for="dur">Duration</label>
     <select id="dur" onchange="generate()">
@@ -62,99 +59,72 @@
       <option value="120">2 hours</option>
     </select>
   </div>
-
   <div id="result" class="result">
-
     <div class="wa-card">
       <div class="card-label">WhatsApp message</div>
       <div id="watext" class="wa-text"></div>
       <button class="copy-btn" id="wa-btn" onclick="copyWA()">Copy message</button>
     </div>
-
     <hr class="divider">
-
     <div class="link-card">
-      <div class="card-label">Calendar link (works on iPhone + Android)</div>
+      <div class="card-label">Calendar link (iPhone + Android)</div>
       <div id="linktext" class="link-text"></div>
       <button class="copy-btn-outline" id="link-btn" onclick="copyLink()">Copy link only</button>
     </div>
-
   </div>
 </div>
-
 <script>
-let calLink = '';
-let waMsg = '';
-
-function pad(n) { return String(n).padStart(2, '0'); }
-
-function addMins(dateStr, timeStr, mins) {
-  const dt = new Date(dateStr + 'T' + timeStr);
-  dt.setMinutes(dt.getMinutes() + parseInt(mins));
-  return dt.getFullYear() + '-' + pad(dt.getMonth()+1) + '-' + pad(dt.getDate()) + 'T' + pad(dt.getHours()) + ':' + pad(dt.getMinutes());
+let calLink='';let waMsg='';
+function pad(n){return String(n).padStart(2,'0');}
+function addMins(dateStr,timeStr,mins){
+  const dt=new Date(dateStr+'T'+timeStr);
+  dt.setMinutes(dt.getMinutes()+parseInt(mins));
+  return dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate())+'T'+pad(dt.getHours())+':'+pad(dt.getMinutes());
 }
-
-function formatDisplay(dateStr, timeStr) {
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const dt = new Date(dateStr + 'T' + timeStr);
-  const hr = parseInt(timeStr.split(':')[0]);
-  const mn = timeStr.split(':')[1];
-  const ampm = hr >= 12 ? 'PM' : 'AM';
-  const hr12 = hr % 12 || 12;
-  return days[dt.getDay()] + ' ' + dt.getDate() + ' ' + months[dt.getMonth()] + ' at ' + hr12 + ':' + mn + ' ' + ampm;
+function formatDisplay(dateStr,timeStr){
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dt=new Date(dateStr+'T'+timeStr);
+  const hr=parseInt(timeStr.split(':')[0]);const mn=timeStr.split(':')[1];
+  const ampm=hr>=12?'PM':'AM';const hr12=hr%12||12;
+  return days[dt.getDay()]+' '+dt.getDate()+' '+months[dt.getMonth()]+' at '+hr12+':'+mn+' '+ampm;
 }
-
-function generate() {
-  const name = document.getElementById('cname').value.trim();
-  const date = document.getElementById('adate').value;
-  const time = document.getElementById('atime').value;
-  const dur = document.getElementById('dur').value;
-  const result = document.getElementById('result');
-
-  if (!date || !time) { result.classList.remove('show'); return; }
-
-  const endTime = addMins(date, time, dur);
-  const startISO = date + 'T' + time;
-  const display = formatDisplay(date, time);
-
-  const base = 'https://yasmine-lgtm.github.io/reface-calendar/';
-  calLink = base + '?t=' + encodeURIComponent('Reface appointment')
-    + '&s=' + encodeURIComponent(startISO)
-    + '&e=' + encodeURIComponent(endTime)
-    + (name ? '&n=' + encodeURIComponent(name) : '');
-
-  waMsg = 'Hi' + (name ? ' ' + name : '') + ' 👋\n\nJust a reminder of your Reface appointment on ' + display + '.\n\nTap the link below to add it to your calendar 📅\n' + calLink;
-
-  document.getElementById('linktext').textContent = calLink;
-  document.getElementById('watext').textContent = waMsg;
+function generate(){
+  const name=document.getElementById('cname').value.trim();
+  const date=document.getElementById('adate').value;
+  const time=document.getElementById('atime').value;
+  const dur=document.getElementById('dur').value;
+  const result=document.getElementById('result');
+  if(!date||!time){result.classList.remove('show');return;}
+  const endTime=addMins(date,time,dur);
+  const startISO=date+'T'+time;
+  const display=formatDisplay(date,time);
+  const base='https://yasmine-lgtm.github.io/reface-calendar/';
+  calLink=base+'?t='+encodeURIComponent('Reface appointment')+'&s='+encodeURIComponent(startISO)+'&e='+encodeURIComponent(endTime)+(name?'&n='+encodeURIComponent(name):'');
+  waMsg='Hi'+(name?' '+name:'')+' \uD83D\uDC4B\n\nJust a reminder of your Reface appointment on '+display+'.\n\nTap the link below to add it to your calendar \uD83D\uDCC5\n'+calLink;
+  document.getElementById('linktext').textContent=calLink;
+  document.getElementById('watext').textContent=waMsg;
   result.classList.add('show');
-
   document.getElementById('wa-btn').classList.remove('copied');
-  document.getElementById('wa-btn').textContent = 'Copy message';
+  document.getElementById('wa-btn').textContent='Copy message';
   document.getElementById('link-btn').classList.remove('copied');
-  document.getElementById('link-btn').textContent = 'Copy link only';
+  document.getElementById('link-btn').textContent='Copy link only';
 }
-
-function copyWA() {
-  navigator.clipboard.writeText(waMsg).then(() => {
-    const btn = document.getElementById('wa-btn');
-    btn.classList.add('copied');
-    btn.textContent = '✓ Copied!';
-    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy message'; }, 2000);
+function copyWA(){
+  navigator.clipboard.writeText(waMsg).then(()=>{
+    const btn=document.getElementById('wa-btn');
+    btn.classList.add('copied');btn.textContent='\u2713 Copied!';
+    setTimeout(()=>{btn.classList.remove('copied');btn.textContent='Copy message';},2000);
   });
 }
-
-function copyLink() {
-  navigator.clipboard.writeText(calLink).then(() => {
-    const btn = document.getElementById('link-btn');
-    btn.classList.add('copied');
-    btn.textContent = '✓ Copied!';
-    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy link only'; }, 2000);
+function copyLink(){
+  navigator.clipboard.writeText(calLink).then(()=>{
+    const btn=document.getElementById('link-btn');
+    btn.classList.add('copied');btn.textContent='\u2713 Copied!';
+    setTimeout(()=>{btn.classList.remove('copied');btn.textContent='Copy link only';},2000);
   });
 }
-
-document.getElementById('adate').valueAsDate = new Date();
+document.getElementById('adate').valueAsDate=new Date();
 generate();
 </script>
 </body>
