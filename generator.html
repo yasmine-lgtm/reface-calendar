@@ -81,13 +81,18 @@ function addMins(dateStr,timeStr,mins){
   dt.setMinutes(dt.getMinutes()+parseInt(mins));
   return dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate())+'T'+pad(dt.getHours())+':'+pad(dt.getMinutes());
 }
-function formatDisplay(dateStr,timeStr){
+function formatDay(dateStr){
   const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const dt=new Date(dateStr+'T'+timeStr);
-  const hr=parseInt(timeStr.split(':')[0]);const mn=timeStr.split(':')[1];
-  const ampm=hr>=12?'PM':'AM';const hr12=hr%12||12;
-  return days[dt.getDay()]+' '+dt.getDate()+' '+months[dt.getMonth()]+' at '+hr12+':'+mn+' '+ampm;
+  const dt=new Date(dateStr+'T00:00:00');
+  return days[dt.getDay()]+', '+dt.getDate()+' '+months[dt.getMonth()];
+}
+function formatTime(timeStr){
+  const hr=parseInt(timeStr.split(':')[0]);
+  const mn=timeStr.split(':')[1];
+  const ampm=hr>=12?'PM':'AM';
+  const hr12=hr%12||12;
+  return hr12+':'+mn+' '+ampm;
 }
 function generate(){
   const name=document.getElementById('cname').value.trim();
@@ -98,10 +103,11 @@ function generate(){
   if(!date||!time){result.classList.remove('show');return;}
   const endTime=addMins(date,time,dur);
   const startISO=date+'T'+time;
-  const display=formatDisplay(date,time);
+  const day=formatDay(date);
+  const t=formatTime(time);
   const base='https://yasmine-lgtm.github.io/reface-calendar/';
   calLink=base+'?t='+encodeURIComponent('Reface appointment')+'&s='+encodeURIComponent(startISO)+'&e='+encodeURIComponent(endTime)+(name?'&n='+encodeURIComponent(name):'');
-  waMsg='Hi'+(name?' '+name:'')+' \uD83D\uDC4B\n\nJust a reminder of your Reface appointment on '+display+'.\n\nTap the link below to add it to your calendar \uD83D\uDCC5\n'+calLink;
+  waMsg='Hello'+(name?' '+name:'')+'!\n\nJust a reminder that your session with us is coming up next '+day+' at '+t+' \uD83E\uDD0D\n\nWe\u2019re looking forward to having you in, if anything comes up between now and then, just let us know!\n\nTap the link below to add it to your calendar \uD83D\uDCC5\n'+calLink;
   document.getElementById('linktext').textContent=calLink;
   document.getElementById('watext').textContent=waMsg;
   result.classList.add('show');
