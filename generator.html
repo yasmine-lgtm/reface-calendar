@@ -37,21 +37,21 @@
   <p class="sub">Fill in the appointment — copy the WhatsApp message.</p>
   <div class="field">
     <label for="cname">Client name</label>
-    <input type="text" id="cname" placeholder="e.g. Lara" oninput="generate()" />
+    <input type="text" id="cname" placeholder="e.g. Lara" oninput="onInput()" />
   </div>
   <div class="row">
     <div class="field" style="margin-bottom:0">
       <label for="adate">Date</label>
-      <input type="date" id="adate" oninput="generate()" />
+      <input type="date" id="adate" oninput="onInput()" />
     </div>
     <div class="field" style="margin-bottom:0">
       <label for="atime">Time</label>
-      <input type="time" id="atime" oninput="generate()" />
+      <input type="time" id="atime" oninput="onInput()" />
     </div>
   </div>
   <div class="field" style="margin-top:1rem">
     <label for="dur">Duration</label>
-    <select id="dur" onchange="generate()">
+    <select id="dur" onchange="onInput()">
       <option value="30">30 minutes</option>
       <option value="45">45 minutes</option>
       <option value="60" selected>1 hour</option>
@@ -67,14 +67,14 @@
     </div>
     <hr class="divider">
     <div class="link-card">
-      <div class="card-label">Calendar link (iPhone + Android)</div>
+      <div class="card-label">Calendar link</div>
       <div id="linktext" class="link-text"></div>
       <button class="copy-btn-outline" id="link-btn" onclick="copyLink()">Copy link only</button>
     </div>
   </div>
 </div>
 <script>
-let calLink='';let waMsg='';
+let calLink='';let shortLink='';let waMsg='';let debounceTimer=null;
 function pad(n){return String(n).padStart(2,'0');}
 function addMins(dateStr,timeStr,mins){
   const dt=new Date(dateStr+'T'+timeStr);
@@ -94,7 +94,23 @@ function formatTime(timeStr){
   const hr12=hr%12||12;
   return hr12+':'+mn+' '+ampm;
 }
-function generate(){
+function buildMessage(link){
+  const name=document.getElementById('cname').value.trim();
+  const date=document.getElementById('adate').value;
+  const time=document.getElementById('atime').value;
+  const day=formatDay(date);
+  const t=formatTime(time);
+  return 'Hello'+(name?' '+name:'')+'!\n\nJust a reminder that your session with us is coming up next '+day+' at '+t+' \uD83E\uDD0D\n\nWe\u2019re looking forward to having you in, if anything comes up between now and then, just let us know!\n\nTap the link below to add it to your calendar \uD83D\uDCC5\n'+link;
+}
+async function shortenURL(url){
+  try{
+    const resp=await fetch('https://tinyurl.com/api-create.php?url='+encodeURIComponent(url));
+    if(resp.ok){const text=await resp.text();if(text.startsWith('https://tinyurl.com/'))return text.trim();}
+  }catch(e){}
+  return null;
+}
+function onInput(){clearTimeout(debounceTimer);debounceTimer=setTimeout(generate,600);}
+async function generate(){
   const name=document.getElementById('cname').value.trim();
   const date=document.getElementById('adate').value;
   const time=document.getElementById('atime').value;
@@ -103,18 +119,26 @@ function generate(){
   if(!date||!time){result.classList.remove('show');return;}
   const endTime=addMins(date,time,dur);
   const startISO=date+'T'+time;
-  const day=formatDay(date);
-  const t=formatTime(time);
   const base='https://yasmine-lgtm.github.io/reface-calendar/';
   calLink=base+'?t='+encodeURIComponent('Reface appointment')+'&s='+encodeURIComponent(startISO)+'&e='+encodeURIComponent(endTime)+(name?'&n='+encodeURIComponent(name):'');
-  waMsg='Hello'+(name?' '+name:'')+'!\n\nJust a reminder that your session with us is coming up next '+day+' at '+t+' \uD83E\uDD0D\n\nWe\u2019re looking forward to having you in, if anything comes up between now and then, just let us know!\n\nTap the link below to add it to your calendar \uD83D\uDCC5\n'+calLink;
-  document.getElementById('linktext').textContent=calLink;
+  shortLink=calLink;
+  waMsg=buildMessage(calLink);
   document.getElementById('watext').textContent=waMsg;
+  document.getElementById('linktext').textContent='Shortening link...';
   result.classList.add('show');
   document.getElementById('wa-btn').classList.remove('copied');
   document.getElementById('wa-btn').textContent='Copy message';
   document.getElementById('link-btn').classList.remove('copied');
   document.getElementById('link-btn').textContent='Copy link only';
+  const tiny=await shortenURL(calLink);
+  if(tiny){
+    shortLink=tiny;
+    waMsg=buildMessage(tiny);
+    document.getElementById('linktext').textContent=tiny;
+    document.getElementById('watext').textContent=waMsg;
+  } else {
+    document.getElementById('linktext').textContent=calLink;
+  }
 }
 function copyWA(){
   navigator.clipboard.writeText(waMsg).then(()=>{
@@ -124,14 +148,13 @@ function copyWA(){
   });
 }
 function copyLink(){
-  navigator.clipboard.writeText(calLink).then(()=>{
+  navigator.clipboard.writeText(shortLink).then(()=>{
     const btn=document.getElementById('link-btn');
     btn.classList.add('copied');btn.textContent='\u2713 Copied!';
     setTimeout(()=>{btn.classList.remove('copied');btn.textContent='Copy link only';},2000);
   });
 }
 document.getElementById('adate').valueAsDate=new Date();
-generate();
 </script>
 </body>
 </html>
